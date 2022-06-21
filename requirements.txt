@@ -1,0 +1,3 @@
+fastapi==0.78.0
+mangum==0.15.0
+python-multipart==0.0.5uvicorn==0.17.6
