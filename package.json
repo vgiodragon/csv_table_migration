@@ -1,0 +1,8 @@
+{
+  "author": "csv-table-migration",
+  "devDependencies": {
+    "serverless-python-requirements": "^5.4.0"
+  },
+  "name": "test-valid-csv",
+  "version": "1.0.0"
+}
