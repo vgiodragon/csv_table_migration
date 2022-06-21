@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+
+# serverless
+.serverless
+
+# Node artifact files
+node_modules/
+dist/
+
 # C extensions
 *.so
 
@@ -104,6 +112,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+ve/
 env/
 venv/
 ENV/
