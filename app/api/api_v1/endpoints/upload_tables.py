@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 @router.post("/departments/upload/")
-async def department_upload(file: UploadFile):
+async def departments_upload(file: UploadFile):
     contents = await file.read()
     return valid_content_and_upload_to_s3(contents, Table.DEPARMENTS)
 
