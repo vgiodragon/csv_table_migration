@@ -15,11 +15,13 @@ provider:
     S3_BUCKET: poc-gio
     S3_PATH: historic-upload
     TMP_FOLDER: /tmp/
-  iamRoleStatements:
-    - Effect: "Allow"
-      Action:
-        - "s3:PutObject"
-      Resource: "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/${self:provider.environment.S3_PATH}*"
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:PutObject"
+          Resource: "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/${self:provider.environment.S3_PATH}*"
 
 plugins:
   - serverless-python-requirements
