@@ -40,7 +40,7 @@ class ValidateCSV(object):
                     elif self.structure[i] == ColumnsType.DATE:
                         datetime.strptime(elements[i], '%Y-%m-%dT%H:%M:%SZ')
                     elif self.structure[i] == ColumnsType.STRING:
-                        c_element = elements[i].replace(' ', '')
+                        c_element = elements[i].replace(' ', '').replace('/', '')
                         if not c_element.isidentifier():
                             raise Exception()
                 except Exception as e:
