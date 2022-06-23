@@ -27,8 +27,8 @@ class HistoricGenerator(object):
         path_historic = '/'.join([settings.TMP_FOLDER, self.table_name + '.csv'])
 
         with open(path_historic, 'w', newline='') as f:
-            wr = csv.writer(f, quoting=csv.QUOTE_ALL)
-            wr.writerow(list_rows)
+            wr = csv.writer(f)
+            wr.writerows(list_rows)
 
         return path_historic
 

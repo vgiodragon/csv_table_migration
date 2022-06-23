@@ -46,3 +46,10 @@ class ValidateCSV(object):
                 except Exception as e:
                     raise Exception(f'Invalid element {elements[i]} {self.structure[i]}_')
         return content
+
+    def get_content_array_rows(self, content):
+        final_rows = []
+        print(content)
+        for row in content:
+            final_rows.append(row.split(self.file_separator))
+        return final_rows

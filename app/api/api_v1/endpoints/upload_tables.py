@@ -28,7 +28,7 @@ async def jobs_upload(file: UploadFile):
 
 def valid_content_and_upload_to_s3(contents, table_op):
     try:
-        list_rows = valid_content(contents, table_op)
+        list_rows = valid_contents(contents, table_op)
     except Exception as e:
         logging.info(f'/{table_op}/upload/ Invalid contents {contents}')
         return HTTPException(status_code=422, detail=str(e))
@@ -38,10 +38,11 @@ def valid_content_and_upload_to_s3(contents, table_op):
     return {'message': 'successful upload'}
 
 
-def valid_content(contents, table_op):
+def valid_contents(contents, table_op):
     valid_csv = ValidateCSV(table_op)
-    clean_content = (contents.decode("us-ascii")).replace('\r', '')
-    return valid_csv.valid_content(clean_content.split('\n'))
+    clean_content = (contents.decode("us-ascii")).replace('\r', '').split('\n')
+    valid_csv.valid_content(clean_content)
+    return valid_csv.get_content_array_rows(clean_content)
 
 
 def create_csv_and_upload_to_s3(list_rows, table_op):
