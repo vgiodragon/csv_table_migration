@@ -15,13 +15,26 @@ provider:
     S3_BUCKET: poc-gio
     S3_PATH: historic-upload
     TMP_FOLDER: /tmp/
+    DB_CREDENTIALS: poc/historic-date/aurora-postgres
+    SNS_TOPIC_ARN: arn:aws:sns:us-east-2:949778761636:insertion-csv
+    DB_REGION: us-east-2
   iam:
     role:
       statements:
         - Effect: "Allow"
           Action:
             - "s3:PutObject"
+            - "s3:GetObject"
           Resource: "arn:aws:s3:::${self:provider.environment.S3_BUCKET}/${self:provider.environment.S3_PATH}*"
+
+        - Effect: "Allow"
+          Action:
+            - "secretsmanager:*"
+          Resource: "arn:aws:secretsmanager:${self:provider.environment.DB_REGION}:*:secret:${self:provider.environment.DB_CREDENTIALS}-hPlg7e"
+        - Effect: "Allow"
+          Action:
+            - "sns:Publish"
+          Resource: "${self:provider.environment.SNS_TOPIC_ARN}"
 
 plugins:
   - serverless-python-requirements
@@ -49,6 +62,8 @@ functions:
         - "!.serverless/**"
         - "!node_modules/**"
         - "!ve/**"
+        - "!migrate_files/**"
+        - "!README.md"
 
     handler: app.main.handler
     environment:
@@ -60,3 +75,33 @@ functions:
           method: any
           path: /{proxy+}
           cors: true
+
+  migrate_files:
+    package:
+      patterns:
+        - "migrate_files/**"
+        - "!app/**"
+        - "!requirements.txt"
+        - "!package.json"
+        - "!package-lock.json"
+        - "!.gitignore"
+        - "!.pre-commit-config.yaml"
+        - "!.pylintrc"
+        - "!.serverless/**"
+        - "!node_modules/**"
+        - "!ve/**"
+        - "!README.md"
+
+    handler: migrate_files.main.lambda_handler
+    environment:
+        STAGE: ${self:provider.stage}
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }
+    events:
+      - s3:
+          bucket: ${self:provider.environment.S3_BUCKET}
+          event: s3:ObjectCreated:Put
+          rules:
+            - prefix: historic-upload/
+            - suffix: .csv
+          existing: true
