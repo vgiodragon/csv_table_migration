@@ -4,6 +4,12 @@ __pycache__/
 *$py.class
 
 
+#DS_Store
+.DS_Store
+
+#csv files
+.csv
+
 # serverless
 .serverless
 

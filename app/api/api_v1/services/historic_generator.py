@@ -15,7 +15,7 @@ class HistoricGenerator(object):
 
     def get_table_name(self, table_op):
         if table_op == Table.DEPARMENTS:
-            return 'departmets'
+            return 'departments'
         elif table_op == Table.JOBS:
             return 'jobs'
         elif table_op == Table.HIRED_EMPLOYEES:
