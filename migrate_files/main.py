@@ -23,8 +23,8 @@ logger.setLevel(logging.INFO)
 
 def get_secret():
 
-    secret_name = "poc/historic-date/aurora-postgres"
-    region_name = "us-east-2"
+    secret_name = DB_CREDENTIALS
+    region_name = DB_REGION
 
     # Create a Secrets Manager client
     session = boto3.session.Session()
@@ -107,6 +107,10 @@ def get_value_by_table(row, table):
     elements = row.split(',')
     if table == 'departments':
         return (int(elements[0]), elements[1])
+    elif table == 'jobs':
+        return (int(elements[0]), elements[1])
+    elif table == 'hired_employees':
+        return (int(elements[0]), elements[1], elements[2], int(elements[3]), int(elements[4]))
 
 
 def get_list_values_to_insert(csv_file, table):
@@ -120,6 +124,10 @@ def get_list_values_to_insert(csv_file, table):
 def get_str_n_element(table):
     if table == 'departments':
         return "(%s,%s)"
+    elif table == 'jobs':
+        return "(%s,%s)"
+    elif table == 'hired_employees':
+        return "(%s,%s,%s,%s,%s)"
 
 
 def insert_values_to_db(connection, values, table):
