@@ -10,7 +10,7 @@ from botocore.exceptions import ClientError
 DB_CREDENTIALS = os.environ['DB_CREDENTIALS']
 DB_REGION = os.environ['DB_REGION']
 
-JOB_NAME = os.environ['RESTORE_JOB_NAME']
+JOB_NAME = os.environ['INSERT_JOB_NAME']
 
 sm_session = boto3.session.Session()
 s3_client = boto3.client('s3')
