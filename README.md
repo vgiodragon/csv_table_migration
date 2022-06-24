@@ -1,9 +1,9 @@
 # README #
 
-This is a generic version for a microservice in Lambda to download a specific file from S3 with Cognito as authorizer using Serverless framework.
-
-This is a project create:
-    - An API using serveless framework to validate and upload csv file to S3.
+This a project that creates:
+    - An API using serveless framework and FASTAPI to validate and upload csv file to S3.
+    - A Lambda function to read a csv File from an S3 event and then insert multiple rows in a query to a Postgres DB
+    - A Lambda function to truncate a Postgres table and then run a glue job that restore the table from a avro file in S3
 
 ### How do I get set up? ###
 
@@ -25,7 +25,7 @@ This is a project create:
 
 ### How do I run? ###
 
-1. Run in local
+1. Run API server locally
 
         $ uvicorn app.main:app --reload
 
