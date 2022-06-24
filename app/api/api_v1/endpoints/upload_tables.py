@@ -1,6 +1,6 @@
 import logging
 
-from app.api.api_v1.services.historic_generator import HistoricGenerator
+from app.api.api_v1.services.table_generator import TableGenerator
 from app.api.api_v1.services.util import Table
 from app.api.api_v1.services.validate_csv import ValidateCSV
 from fastapi import APIRouter, HTTPException, UploadFile
@@ -35,7 +35,7 @@ def valid_content_and_upload_to_s3(contents, table_op):
 
     create_csv_and_upload_to_s3(list_rows, table_op)
 
-    return {'message': 'successful upload'}
+    return {'message': 'successful upload to s3'}
 
 
 def valid_contents(contents, table_op):
@@ -46,6 +46,6 @@ def valid_contents(contents, table_op):
 
 
 def create_csv_and_upload_to_s3(list_rows, table_op):
-    hg = HistoricGenerator(table_op)
+    hg = TableGenerator(table_op)
     path_historic = hg.create_csv_file_locally(list_rows)
     hg.upload_file(path_historic)

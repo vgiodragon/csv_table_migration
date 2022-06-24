@@ -18,6 +18,7 @@ provider:
     DB_CREDENTIALS: poc/historic-date/aurora-postgres
     SNS_TOPIC_ARN: arn:aws:sns:us-east-2:949778761636:insertion-csv
     DB_REGION: us-east-2
+    INSERT_JOB_NAME: insert_avro_file_to_glue_database
   iam:
     role:
       statements:
@@ -35,6 +36,10 @@ provider:
           Action:
             - "sns:Publish"
           Resource: "${self:provider.environment.SNS_TOPIC_ARN}"
+        - Effect: "Allow"
+          Action:
+            - "glue:StartJobRun"
+          Resource: "arn:aws:glue:${self:provider.environment.DB_REGION}:*:job/${self:provider.environment.INSERT_JOB_NAME}"
 
 plugins:
   - serverless-python-requirements
@@ -64,6 +69,8 @@ functions:
         - "!ve/**"
         - "!migrate_files/**"
         - "!README.md"
+        - "!glue_jobs/**"
+        - "!trigger_restore_table/**"
 
     handler: app.main.handler
     environment:
@@ -91,6 +98,8 @@ functions:
         - "!node_modules/**"
         - "!ve/**"
         - "!README.md"
+        - "!glue_jobs/**"
+        - "!trigger_restore_table/**"
 
     handler: migrate_files.main.lambda_handler
     environment:
@@ -105,3 +114,27 @@ functions:
             - prefix: historic-upload/
             - suffix: .csv
           existing: true
+
+  restore_table:
+    package:
+      patterns:
+        - "trigger_restore_table/**"
+        - "!migrate_files/**"
+        - "!app/**"
+        - "!requirements.txt"
+        - "!package.json"
+        - "!package-lock.json"
+        - "!.gitignore"
+        - "!.pre-commit-config.yaml"
+        - "!.pylintrc"
+        - "!.serverless/**"
+        - "!node_modules/**"
+        - "!ve/**"
+        - "!README.md"
+        - "!glue_jobs/**"
+
+    handler: trigger_restore_table_and_start_glue_job.main.lambda_handler
+    environment:
+        STAGE: ${self:provider.stage}
+    layers:
+      - { Ref: PythonRequirementsLambdaLayer }

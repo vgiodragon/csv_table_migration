@@ -2,7 +2,6 @@ import base64
 import json
 import logging
 import os
-from urllib.parse import unquote_plus
 
 import boto3
 import psycopg2
@@ -10,11 +9,13 @@ from botocore.exceptions import ClientError
 
 DB_CREDENTIALS = os.environ['DB_CREDENTIALS']
 DB_REGION = os.environ['DB_REGION']
-SNS_TOPIC_ARN = os.environ['SNS_TOPIC_ARN']
+
+JOB_NAME = os.environ['INSERT_JOB_NAME']
 
 sm_session = boto3.session.Session()
 s3_client = boto3.client('s3')
 sns = boto3.client('sns')
+glue_client = boto3.client('glue')
 
 # Logger
 logger = logging.getLogger()
@@ -77,6 +78,7 @@ def get_secret():
 
 def connection_to_rds():
     secrets = get_secret()
+
     connection = psycopg2.connect(user=secrets['username'],
                                   password=secrets['password'],
                                   host=secrets['host'],
@@ -86,75 +88,31 @@ def connection_to_rds():
     return connection
 
 
-def parse_s3_event(event):
-    bucket = event['Records'][0]['s3']['bucket']['name']
-    key = unquote_plus(event['Records'][0]['s3']['object']['key'])
-    table = key.split('/')[-2]
-    return {
-        'bucket': bucket,
-        'key': key,
-        'table': table
-    }
-
-
-def get_csv_file(item):
-    csv_file_object = s3_client.get_object(Bucket=item['bucket'], Key=item['key'])
-    return csv_file_object['Body'].read().decode('us-ascii')
-
-
-def get_value_by_table(row, table):
-    elements = row.split(',')
-    if table == 'departments':
-        return (int(elements[0]), elements[1])
-    elif table == 'jobs':
-        return (int(elements[0]), elements[1])
-    elif table == 'hired_employees':
-        return (int(elements[0]), elements[1], elements[2], int(elements[3]), int(elements[4]))
-
-
-def get_list_values_to_insert(csv_file, table):
-    values = []
-    for row in csv_file.split('\n'):
-        if row:
-            values.append(get_value_by_table(row, table))
-    return values
-
-
-def get_str_n_element(table):
-    if table == 'departments':
-        return "(%s,%s)"
-    elif table == 'jobs':
-        return "(%s,%s)"
-    elif table == 'hired_employees':
-        return "(%s,%s,%s,%s,%s)"
-
-
-def insert_values_to_db(connection, values, table):
+def truncate_table(connection, table_name):
     cursor = connection.cursor()
-    str_n_element = get_str_n_element(table)
-    # cursor.mogrify() to insert multiple values
-    args = ','.join(cursor.mogrify(str_n_element, i).decode('utf-8')
-                    for i in values)
 
     # executing the sql statement
-    cursor.execute(f"INSERT INTO {table} VALUES {args}")
+    cursor.execute(f"TRUNCATE TABLE {table_name}")
     connection.commit()
 
     # closing connection
     connection.close()
 
 
+def start_job_run_to_restore_table(table_name, s3_bu_path):
+    glue_client.start_job_run(
+        JobName=JOB_NAME,
+        Arguments={
+            '--TABLE_NAME': table_name,
+            '--S3_INPUT_PATH': s3_bu_path
+        }
+    )
+
+
 def lambda_handler(event, context):
-    try:
-        logging.info(event)
-        item = parse_s3_event(event)
-        csv_file = get_csv_file(item)
-        values = get_list_values_to_insert(csv_file, item['table'])
-        connection = connection_to_rds()
-        insert_values_to_db(connection, values, item['table'])
-        message = f"Successful insertion."
-        final_status = '(SUCCESS)'
-    except Exception as e:
-        message = f"Insertion error {e}"
-        final_status = '(FAILED)'
-    sns.publish(TopicArn=SNS_TOPIC_ARN, Message=message, Subject=f'{final_status} MODAMA: Datalake File Validator')
+    table_name = event['table_name']
+    s3_bu_path = event['s3_bu_path']
+
+    connection = connection_to_rds()
+    truncate_table(connection, table_name)
+    start_job_run_to_restore_table(table_name, s3_bu_path)
