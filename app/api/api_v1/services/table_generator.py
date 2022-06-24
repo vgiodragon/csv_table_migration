@@ -6,7 +6,7 @@ from app.api.api_v1.services.aws import S3Service
 from app.api.api_v1.services.util import Table
 
 
-class HistoricGenerator(object):
+class TableGenerator(object):
 
     def __init__(self, table_op):
         self.table_name = self.get_table_name(table_op)
