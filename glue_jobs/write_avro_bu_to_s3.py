@@ -33,7 +33,6 @@ datetime_now = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
 dynamic_frame = glueContext.create_dynamic_frame.from_catalog(
     database=CATALOG_DATABASE_NAME,
     table_name=f'postgres_public_{TABLE_NAME}',
-
 )
 
 glueContext.write_dynamic_frame.from_options(
